@@ -1,0 +1,48 @@
+diff --git a/src/engine.cpp b/src/engine.cpp
+index 74dae02..6f1b8f1 100644
+--- a/src/engine.cpp
++++ b/src/engine.cpp
+@@ -301,7 +301,8 @@ Engine::start(void)
+ 		return 0;
+ 	}
+ 
+-	engine->device.system(DEVICEINIT, nil, 0);
++	if(!engine->device.system(DEVICEINIT, nil, 0))
++		return 0;
+ 
+ 	Engine::s_plglist.construct(engine);
+ 	for(uint i = 0; i < NUM_PLATFORMS; i++)
+diff --git a/src/gl/gl3device.cpp b/src/gl/gl3device.cpp
+index 569dfad..24108bf 100644
+--- a/src/gl/gl3device.cpp
++++ b/src/gl/gl3device.cpp
+@@ -1536,7 +1536,7 @@ static struct {
+ 	{ SDL_GL_CONTEXT_PROFILE_CORE, 3, 3 },
+ 	{ SDL_GL_CONTEXT_PROFILE_CORE, 2, 1 },
+ #endif
+-	{ SDL_GL_CONTEXT_PROFILE_ES, 3, 2 },
++	{ SDL_GL_CONTEXT_PROFILE_ES, 3, 1 },
+ 	{ SDL_GL_CONTEXT_PROFILE_ES, 2, 0 },
+ 	{ 0, 0, 0 },
+ };
+@@ -1544,7 +1544,7 @@ static struct {
+ static int
+ startSDL2(void)
+ {
+-	SDL_Window *win;
++	SDL_Window *win = nil;
+ 	SDL_GLContext ctx;
+ 	DisplayMode *mode;
+ 
+@@ -1578,6 +1578,11 @@ startSDL2(void)
+ 		return 0;
+ 	}
+ 	ctx = SDL_GL_CreateContext(win);
++	if(ctx == nil){
++		RWERROR((ERR_GENERAL, SDL_GetError()));
++		SDL_DestroyWindow(win);
++		return 0;
++	}
+ 
+ 	if (!((gl3Caps.gles ? gladLoadGLES2Loader : gladLoadGLLoader) ((GLADloadproc) SDL_GL_GetProcAddress, gl3Caps.glversion)) ) {
+ 		RWERROR((ERR_GENERAL, "gladLoadGLLoader failed"));

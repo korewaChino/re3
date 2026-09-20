@@ -21,7 +21,13 @@ jobs:
         run: |
           dnf install -y \
             cmake ninja-build gcc-c++ make pkgconf-pkg-config \
-            SDL2-devel openal-soft-devel mpg123-devel
+            SDL2-devel openal-soft-devel mpg123-devel patch
+
+      # librw fixes we carry until upstream takes them:
+      # request ES 3.1 (matches bundled GLAD), check the GL context,
+      # abort engine start when DEVICEINIT fails (else null GL calls).
+      - name: Apply librw GLES fixes
+        run: git -C vendor/librw apply "$GITHUB_WORKSPACE/cmake/librw-sdl2-gles-fixes.patch"
 
       # Mirrors the proven native build: GL3 + SDL2 + forced GLES,
       # Release, OpenAL audio (the default on both the re3/gta3 and
@@ -32,7 +38,9 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DLIBRW_PLATFORM=GL3 \
             -DLIBRW_GL3_GFXLIB=SDL2 \
-            -DLIBRW_FORCE_GLES=ON
+            -DLIBRW_FORCE_GLES=ON \
+            -DREVC_HANDHELD=ON \
+            -DRE3_HANDHELD=ON
 
       - name: Build
         run: cmake --build build -j4
