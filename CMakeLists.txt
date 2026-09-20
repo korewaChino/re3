@@ -38,6 +38,11 @@ if(${PROJECT}_SNES_PAD)
 	add_compile_definitions(${PROJECT}_SNES_PAD)
 endif()
 
+option(${PROJECT}_HANDHELD "Target embedded Linux handhelds (TrimUI etc.): handheld UI, gamepad menu, no mouse/keyboard" OFF)
+if(${PROJECT}_HANDHELD)
+	add_compile_definitions(GTA_HANDHELD)
+endif()
+
 set_property(CACHE ${PROJECT}_AUDIO PROPERTY STRINGS ${${PROJECT}_AUDIOS})
 message(STATUS "${PROJECT}_AUDIO = ${${PROJECT}_AUDIO} (choices=${${PROJECT}_AUDIOS})")
 set("${PROJECT}_AUDIO_${${PROJECT}_AUDIO}" ON)
