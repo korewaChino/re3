@@ -1,0 +1,52 @@
+name: linux sdl2 gles
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-linux-sdl2-gles:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:44
+    steps:
+      - name: Install git (container image is minimal)
+        run: dnf install -y git
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          dnf install -y \
+            cmake ninja-build gcc-c++ make pkgconf-pkg-config \
+            SDL2-devel openal-soft-devel mpg123-devel
+
+      # Mirrors the proven native build: GL3 + SDL2 + forced GLES,
+      # Release, OpenAL audio (the default on both the re3/gta3 and
+      # reVC/miami branches, so no project-specific -D flags needed).
+      - name: Configure
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DLIBRW_PLATFORM=GL3 \
+            -DLIBRW_GL3_GFXLIB=SDL2 \
+            -DLIBRW_FORCE_GLES=ON
+
+      - name: Build
+        run: cmake --build build -j4
+
+      - name: Show artifact
+        run: |
+          ls -l build/src/reVC build/src/re3 2>/dev/null || true
+          file build/src/reVC build/src/re3 2>/dev/null || true
+
+      - name: Upload game binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.ref_name }}-linux-sdl2-gles
+          path: |
+            build/src/reVC
+            build/src/re3
+          if-no-files-found: warn
